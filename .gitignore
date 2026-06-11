@@ -1,0 +1,25 @@
+# Recovered artifacts (kept locally, not in git)
+base.apk
+decompiled/
+money_tracker.db
+money_tracker.db-shm
+money_tracker.db-wal
+
+# Android / Gradle
+.gradle/
+build/
+local.properties
+.idea/
+*.iml
+.kotlin/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# local secrets
+.secrets/
+new_transactions.db
+
+# local process docs (not published)
+docs/
+HANDOFF.md
