@@ -92,6 +92,16 @@ Requires JDK 17+ and the Android SDK (compileSdk 36, minSdk 33).
 
 Kotlin · Jetpack Compose (Material 3) · Hilt · Room (versioned migrations + instrumented migration tests) · Preferences DataStore · OkHttp + Gson · clean architecture (`ai` / `data` / `domain` / `notification` / `sms` / `ui`)
 
+## Contributing
+
+Contributions are welcome — bug reports, feature ideas, and pull requests alike.
+
+- **Found a bug / want a feature?** [Open an issue](https://github.com/AvAl4nch/money-tracker/issues).
+- **Sending a PR?** Fork, branch, and make sure `./gradlew :app:testDebugUnitTest` passes (and `:app:connectedDebugAndroidTest` if you touch the database layer). Add tests for new logic where it makes sense.
+- New bank SMS formats are especially appreciated — add a sample (with account numbers and balances anonymized) to `SmsParserTest` so detection keeps working for everyone.
+
+By contributing you agree your work is licensed under the project's [MIT license](LICENSE).
+
 ## License
 
 [MIT](LICENSE)
