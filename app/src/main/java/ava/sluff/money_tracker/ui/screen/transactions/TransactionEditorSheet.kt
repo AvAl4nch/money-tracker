@@ -16,6 +16,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
@@ -32,26 +33,42 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import ava.sluff.money_tracker.domain.model.Category
+import ava.sluff.money_tracker.domain.model.Transaction
+import ava.sluff.money_tracker.domain.model.TransactionEdits
 import ava.sluff.money_tracker.domain.model.TransactionType
+import ava.sluff.money_tracker.util.MoneyFormat
+import ava.sluff.money_tracker.util.PickedDate
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+/**
+ * Creates a manual transaction when [existing] is null, corrects one when it is not.
+ *
+ * The raw SMS and its sender are deliberately absent from this form: an edit fixes what the
+ * AI got wrong, it does not rewrite what the bank actually sent.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddTransactionSheet(
+fun TransactionEditorSheet(
     categories: List<Category>,
-    onSave: (amount: Double, type: TransactionType, merchant: String?, categoryId: Long?, note: String?, timestamp: Long) -> Unit,
+    existing: Transaction? = null,
+    onSave: (TransactionEdits) -> Unit,
     onDismiss: () -> Unit
 ) {
-    var amountText by remember { mutableStateOf("") }
+    var amountText by remember {
+        mutableStateOf(existing?.let { MoneyFormat.amount(it.amount).replace(",", "") } ?: "")
+    }
     var amountError by remember { mutableStateOf(false) }
-    var type by remember { mutableStateOf(TransactionType.DEBIT) }
-    var merchant by remember { mutableStateOf("") }
-    var note by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf<Category?>(null) }
+    var type by remember { mutableStateOf(existing?.type ?: TransactionType.DEBIT) }
+    var merchant by remember { mutableStateOf(existing?.merchantName ?: "") }
+    var description by remember { mutableStateOf(existing?.description ?: "") }
+    var note by remember { mutableStateOf(existing?.note ?: "") }
+    var selectedCategory by remember {
+        mutableStateOf(categories.firstOrNull { it.id == existing?.categoryId })
+    }
     var categoryMenuOpen by remember { mutableStateOf(false) }
-    var timestamp by remember { mutableStateOf(System.currentTimeMillis()) }
+    var timestamp by remember { mutableStateOf(existing?.timestamp ?: System.currentTimeMillis()) }
     var showDatePicker by remember { mutableStateOf(false) }
     val dateFormat = remember { SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()) }
 
@@ -63,7 +80,10 @@ fun AddTransactionSheet(
                 .padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Text("Add transaction", style = androidx.compose.material3.MaterialTheme.typography.titleMedium)
+            Text(
+                if (existing == null) "Add transaction" else "Edit transaction",
+                style = MaterialTheme.typography.titleMedium
+            )
 
             OutlinedTextField(
                 value = amountText,
@@ -93,6 +113,14 @@ fun AddTransactionSheet(
                 value = merchant,
                 onValueChange = { merchant = it },
                 label = { Text("Merchant (optional)") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            OutlinedTextField(
+                value = description,
+                onValueChange = { description = it },
+                label = { Text("Description (optional)") },
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth()
             )
@@ -145,7 +173,17 @@ fun AddTransactionSheet(
                     if (amount == null || amount <= 0.0) {
                         amountError = true
                     } else {
-                        onSave(amount, type, merchant, selectedCategory?.id, note, timestamp)
+                        onSave(
+                            TransactionEdits(
+                                amount = amount,
+                                type = type,
+                                merchantName = merchant,
+                                description = description,
+                                categoryId = selectedCategory?.id,
+                                note = note,
+                                timestamp = timestamp
+                            )
+                        )
                     }
                 },
                 modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp)
@@ -159,7 +197,9 @@ fun AddTransactionSheet(
             onDismissRequest = { showDatePicker = false },
             confirmButton = {
                 TextButton(onClick = {
-                    datePickerState.selectedDateMillis?.let { timestamp = it }
+                    datePickerState.selectedDateMillis?.let {
+                        timestamp = PickedDate.applyTo(original = timestamp, pickedUtcMidnight = it)
+                    }
                     showDatePicker = false
                 }) { Text("OK") }
             },

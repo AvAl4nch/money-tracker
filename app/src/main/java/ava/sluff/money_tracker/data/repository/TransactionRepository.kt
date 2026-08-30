@@ -31,6 +31,8 @@ class TransactionRepository @Inject constructor(
 
     suspend fun insert(entity: TransactionEntity): Long = transactionDao.insert(entity)
 
+    suspend fun update(entity: TransactionEntity) = transactionDao.update(entity)
+
     suspend fun updateCategory(transactionId: Long, categoryId: Long) =
         transactionDao.updateCategory(transactionId, categoryId)
 

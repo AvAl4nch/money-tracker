@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Card
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -40,6 +41,7 @@ fun TransactionCard(
     categories: List<Category>,
     currency: String,
     onCategorySelected: (Long) -> Unit,
+    onEdit: () -> Unit,
     onDelete: () -> Unit
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -99,6 +101,10 @@ fun TransactionCard(
                     ) {
                         TextButton(onClick = { showCategoryPicker = !showCategoryPicker }) {
                             Text(if (showCategoryPicker) "Hide categories" else "Change category")
+                        }
+                        TextButton(onClick = onEdit) {
+                            Icon(Icons.Default.Edit, contentDescription = "Edit")
+                            Text("Edit")
                         }
                         TextButton(onClick = onDelete) {
                             Icon(Icons.Default.Delete, contentDescription = "Delete")

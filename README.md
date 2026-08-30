@@ -27,9 +27,11 @@ Transactions are **never dropped** — if the AI is unreachable, the amount is e
 - **Budgets** — per-category monthly limits with progress bars, over-limit warnings
 - **Monthly summary** — donut chart, category breakdown, month navigation, 6-month trends comparison
 - **Manual entry** — cash expenses via FAB
+- **Edit any record** — correct the amount, type, date, merchant, description, category or note when the AI got something wrong; the original SMS is kept untouched as the source of truth
+- **Ask your data** — a chat tab that answers questions like "what did I spend on health and education last month" by generating a read-only SQL query over your own records; every answer shows the query it ran
 - **Search + filters** — text search, date-range presets and custom ranges, sort modes, category filter
 - **Data import** — restore from a previous database file via the system file picker (atomic, dedup-safe)
-- **Privacy-minded** — API key and financial DB excluded from cloud backups; response logging disabled in release builds; everything stays on-device except the single SMS being categorized
+- **Privacy-minded** — API key and financial DB excluded from cloud backups; response logging disabled in release builds. Two things leave the device: the single SMS being categorized, and — only when you use the **Ask** tab — your question, the database schema, and the rows your question matched (merchant names, amounts, dates)
 
 ## Setup
 

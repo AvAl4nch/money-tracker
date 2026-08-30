@@ -52,6 +52,7 @@ fun TransactionListScreen(viewModel: TransactionListViewModel = hiltViewModel())
     val activeFilter by viewModel.filterCategoryId.collectAsState()
     val activeQuery by viewModel.searchQuery.collectAsState()
     val activeRange by viewModel.dateRange.collectAsState()
+    val editing by viewModel.editingTransaction.collectAsState()
     var sortMenuOpen by remember { mutableStateOf(false) }
     var filterMenuOpen by remember { mutableStateOf(false) }
     var showAddSheet by remember { mutableStateOf(false) }
@@ -151,6 +152,7 @@ fun TransactionListScreen(viewModel: TransactionListViewModel = hiltViewModel())
                             onCategorySelected = { categoryId ->
                                 viewModel.updateCategory(transaction.id, categoryId)
                             },
+                            onEdit = { viewModel.startEditing(transaction) },
                             onDelete = { viewModel.deleteTransaction(transaction.id) }
                         )
                     }
@@ -160,13 +162,26 @@ fun TransactionListScreen(viewModel: TransactionListViewModel = hiltViewModel())
     }
 
     if (showAddSheet) {
-        AddTransactionSheet(
+        TransactionEditorSheet(
             categories = categories,
-            onSave = { amount, type, merchant, categoryId, note, timestamp ->
-                viewModel.addManualTransaction(amount, type, merchant, categoryId, note, timestamp)
+            existing = null,
+            onSave = { edits ->
+                viewModel.saveTransaction(original = null, edits = edits)
                 showAddSheet = false
             },
             onDismiss = { showAddSheet = false }
+        )
+    }
+
+    editing?.let { target ->
+        TransactionEditorSheet(
+            categories = categories,
+            existing = target,
+            onSave = { edits ->
+                viewModel.saveTransaction(original = target, edits = edits)
+                viewModel.stopEditing()
+            },
+            onDismiss = { viewModel.stopEditing() }
         )
     }
 
