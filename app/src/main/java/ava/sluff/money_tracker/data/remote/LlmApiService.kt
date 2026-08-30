@@ -18,12 +18,28 @@ class LlmApiService @Inject constructor(
     private val gson: Gson
 ) {
 
+    /** Single-turn call used by SMS categorization. */
     suspend fun chatCompletion(
         baseUrl: String,
         apiKey: String,
         model: String,
         systemPrompt: String,
         userMessage: String
+    ): String? = chatCompletion(
+        baseUrl = baseUrl,
+        apiKey = apiKey,
+        model = model,
+        messages = listOf(Message("system", systemPrompt), Message("user", userMessage)),
+        temperature = 0.1
+    )
+
+    /** Multi-turn call used by the Ask tab, where prior turns and temperature both matter. */
+    suspend fun chatCompletion(
+        baseUrl: String,
+        apiKey: String,
+        model: String,
+        messages: List<Message>,
+        temperature: Double
     ): String? = withContext(Dispatchers.IO) {
         if (baseUrl.isBlank()) {
             Log.e(TAG, "Base URL is empty, skipping API call")
@@ -31,15 +47,9 @@ class LlmApiService @Inject constructor(
         }
         val url = baseUrl.trimEnd('/') + "/v1/chat/completions"
         Log.d(TAG, "API call to $url model=$model")
-        val body = ChatRequest(
-            model = model,
-            messages = listOf(
-                Message("system", systemPrompt),
-                Message("user", userMessage)
-            ),
-            temperature = 0.1
+        val json = gson.toJson(
+            ChatRequest(model = model, messages = messages, temperature = temperature)
         )
-        val json = gson.toJson(body)
         val request = Request.Builder()
             .url(url)
             .addHeader("Authorization", "Bearer $apiKey")

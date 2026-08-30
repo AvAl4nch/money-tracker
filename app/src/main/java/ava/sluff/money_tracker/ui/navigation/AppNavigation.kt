@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.PieChart
+import androidx.compose.material.icons.filled.QuestionAnswer
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -23,6 +24,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import ava.sluff.money_tracker.ui.screen.ask.AskScreen
 import ava.sluff.money_tracker.ui.screen.permission.PermissionScreen
 import ava.sluff.money_tracker.ui.screen.settings.SettingsScreen
 import ava.sluff.money_tracker.ui.screen.summary.SpendingSummaryScreen
@@ -37,6 +39,7 @@ private data class BottomNavItem(
 private val bottomNavItems = listOf(
     BottomNavItem(Routes.TRANSACTIONS, Icons.AutoMirrored.Filled.List, "Transactions"),
     BottomNavItem(Routes.SUMMARY, Icons.Default.PieChart, "Summary"),
+    BottomNavItem(Routes.ASK, Icons.Default.QuestionAnswer, "Ask"),
     BottomNavItem(Routes.SETTINGS, Icons.Default.Settings, "Settings")
 )
 
@@ -91,6 +94,7 @@ fun AppNavigation() {
             }
             composable(Routes.TRANSACTIONS) { TransactionListScreen() }
             composable(Routes.SUMMARY) { SpendingSummaryScreen() }
+            composable(Routes.ASK) { AskScreen() }
             composable(Routes.SETTINGS) { SettingsScreen() }
         }
     }

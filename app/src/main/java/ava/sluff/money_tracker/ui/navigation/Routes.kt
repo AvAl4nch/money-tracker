@@ -4,5 +4,6 @@ object Routes {
     const val PERMISSIONS = "permissions"
     const val TRANSACTIONS = "transactions"
     const val SUMMARY = "summary"
+    const val ASK = "ask"
     const val SETTINGS = "settings"
 }
