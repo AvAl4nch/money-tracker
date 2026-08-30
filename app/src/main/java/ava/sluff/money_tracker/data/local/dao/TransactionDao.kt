@@ -3,6 +3,7 @@ package ava.sluff.money_tracker.data.local.dao
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Update
 import ava.sluff.money_tracker.data.local.entity.TransactionEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -43,6 +44,9 @@ interface TransactionDao {
 
     @Insert
     suspend fun insert(transaction: TransactionEntity): Long
+
+    @Update
+    suspend fun update(transaction: TransactionEntity)
 
     @Query("UPDATE transactions SET category_id = :categoryId, is_categorized_by_ai = 0 WHERE id = :transactionId")
     suspend fun updateCategory(transactionId: Long, categoryId: Long)

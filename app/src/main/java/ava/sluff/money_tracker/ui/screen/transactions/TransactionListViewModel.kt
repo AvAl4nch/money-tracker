@@ -8,9 +8,10 @@ import ava.sluff.money_tracker.data.repository.CategoryRepository
 import ava.sluff.money_tracker.data.repository.TransactionRepository
 import ava.sluff.money_tracker.domain.model.Category
 import ava.sluff.money_tracker.domain.model.Transaction
-import ava.sluff.money_tracker.domain.model.TransactionType
+import ava.sluff.money_tracker.domain.model.TransactionEdits
 import ava.sluff.money_tracker.domain.usecase.GetTransactionsUseCase
 import ava.sluff.money_tracker.domain.usecase.UpdateTransactionCategoryUseCase
+import ava.sluff.money_tracker.domain.usecase.UpdateTransactionUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -24,6 +25,7 @@ import javax.inject.Inject
 class TransactionListViewModel @Inject constructor(
     getTransactions: GetTransactionsUseCase,
     private val updateTransactionCategory: UpdateTransactionCategoryUseCase,
+    private val updateTransaction: UpdateTransactionUseCase,
     private val transactionRepository: TransactionRepository,
     categoryRepository: CategoryRepository,
     settingsDataStore: SettingsDataStore
@@ -33,6 +35,9 @@ class TransactionListViewModel @Inject constructor(
     val filterCategoryId = MutableStateFlow<Long?>(null)
     val searchQuery = MutableStateFlow("")
     val dateRange = MutableStateFlow<DateRangeFilter>(DateRangeFilter.All)
+
+    /** Null when the editor is closed, holds the row being corrected when it is open. */
+    val editingTransaction = MutableStateFlow<Transaction?>(null)
 
     val categories: StateFlow<List<Category>> = categoryRepository.getAllCategories()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
@@ -86,31 +91,37 @@ class TransactionListViewModel @Inject constructor(
         viewModelScope.launch { transactionRepository.delete(transactionId) }
     }
 
-    fun addManualTransaction(
-        amount: Double,
-        type: TransactionType,
-        merchant: String?,
-        categoryId: Long?,
-        note: String?,
-        timestamp: Long
-    ) {
+    fun startEditing(transaction: Transaction) {
+        editingTransaction.value = transaction
+    }
+
+    fun stopEditing() {
+        editingTransaction.value = null
+    }
+
+    /** Updates [original] when it is non-null, otherwise records a new manual transaction. */
+    fun saveTransaction(original: Transaction?, edits: TransactionEdits) {
         viewModelScope.launch {
-            transactionRepository.insert(
-                TransactionEntity(
-                    amount = amount,
-                    type = type.name,
-                    merchantName = merchant?.takeIf { it.isNotBlank() },
-                    description = null,
-                    categoryId = categoryId,
-                    rawSms = "",
-                    smsSender = "MANUAL",
-                    timestamp = timestamp,
-                    balanceAfter = null,
-                    isCategorizedByAi = false,
-                    aiConfidence = null,
-                    note = note?.takeIf { it.isNotBlank() }
+            if (original != null) {
+                updateTransaction(original, edits)
+            } else {
+                transactionRepository.insert(
+                    TransactionEntity(
+                        amount = edits.amount,
+                        type = edits.type.name,
+                        merchantName = edits.merchantName?.takeIf { it.isNotBlank() },
+                        description = edits.description?.takeIf { it.isNotBlank() },
+                        categoryId = edits.categoryId,
+                        rawSms = "",
+                        smsSender = "MANUAL",
+                        timestamp = edits.timestamp,
+                        balanceAfter = null,
+                        isCategorizedByAi = false,
+                        aiConfidence = null,
+                        note = edits.note?.takeIf { it.isNotBlank() }
+                    )
                 )
-            )
+            }
         }
     }
 }

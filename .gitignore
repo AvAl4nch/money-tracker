@@ -23,3 +23,6 @@ new_transactions.db
 # local process docs (not published)
 docs/
 HANDOFF.md
+
+# local phone data backup (contains API key + db dumps)
+.phone-backup/
