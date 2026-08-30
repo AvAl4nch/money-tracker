@@ -41,11 +41,20 @@ class ProcessSmsUseCase @Inject constructor(
                 Log.e(TAG, "Categorization failed, storing uncategorized")
             }
 
+            val amount = result?.amount ?: SmsAmountExtractor.amount(smsBody) ?: 0.0
+            if (amount <= 0.0) {
+                // Neither the model nor the local regex found an amount, so this is not a
+                // transaction — usually a marketing message that happened to mention a number.
+                // Storing it would only pollute totals with a row carrying no information.
+                Log.d(TAG, "No usable amount, ignoring")
+                return
+            }
+
             val matchedCategory = result?.let { categoryRepository.getCategoryByName(it.categoryName) }
             val confident = result != null && result.confidence >= CONFIDENCE_THRESHOLD && matchedCategory != null
 
             val entity = TransactionEntity(
-                amount = result?.amount ?: SmsAmountExtractor.amount(smsBody) ?: 0.0,
+                amount = amount,
                 type = (result?.type ?: ava.sluff.money_tracker.domain.model.TransactionType.DEBIT).name,
                 merchantName = result?.merchantName,
                 description = result?.description,
